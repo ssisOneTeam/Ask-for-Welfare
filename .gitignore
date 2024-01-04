@@ -1,1 +1,7 @@
-/data
+## except readme.md(for check structure)
+data/**
+!data/readme.md
+
+## MAC
+.DS_Store
+

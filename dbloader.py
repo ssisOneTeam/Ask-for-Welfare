@@ -66,6 +66,9 @@ class BaseDBLoader:
         # document pre-processing
         for db_folder in os.listdir(self.path_db):
             db_folder_abs = os.path.join(self.path_db, db_folder)
+            if not os.path.isdir(db_folder_abs): ## 절대경로가 폴더일 경우에만 작동, 다른 경우 pass (구조 체크를 위해 넣었음)
+                continue
+
             directory_loader = DirectoryLoader(path=db_folder_abs, loader_cls=self.loader_cls, show_progress=show_progress, use_multithreading=use_multithreading)
             doc_list = directory_loader.load()
 
@@ -180,6 +183,10 @@ class TokenDBLoader(BaseDBLoader):
         # document pre-processing
         for db_folder in os.listdir(self.path_db):
             db_folder_abs = os.path.join(self.path_db, db_folder)
+            if not os.path.isdir(db_folder_abs): ## 절대경로가 폴더일 경우에만 작동, 다른 경우 pass (구조 체크를 위해 넣었음)
+                continue
+            
+            ## load data initialize
             directory_loader = DirectoryLoader(path=db_folder_abs, loader_cls=self.loader_cls, show_progress=show_progress, use_multithreading=use_multithreading)
             doc_list = directory_loader.load()
 
@@ -204,8 +211,6 @@ class TokenDBLoader(BaseDBLoader):
 if __name__ == "__main__":
     db = TokenDBLoader(path_db="data", path_metadata="metadata.json", path_url_table="url_table.csv", text_splitter=None).load()
     print(f"load database complete. {len(db)} exsists with data.")
-
-
 
     ### logger 만들고
     ### textsplitter 붙이기

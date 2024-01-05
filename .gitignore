@@ -4,6 +4,7 @@ data/**
 
 ## data
 app/chroma
+chroma
 
 ## MAC
 .DS_Store

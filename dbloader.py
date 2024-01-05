@@ -20,6 +20,7 @@ import functools
 
 #embeddingloading
 from embedding import EmbeddingLoader
+from langchain.vectorstores.chroma import Chroma
 
 ## wrapper for check time
 def timecheck(func):
@@ -222,8 +223,7 @@ class HuggingFaceEmbeddingTextSplitter:
             bert_config = json.load(file)
             
         self.max_seq_length = bert_config["max_seq_length"]
-
-        print(f"Huggingface model {self.path} got max_seq_length of: {self.max_seq_length}")
+        print(f"max sequence from current model({self.path}) is {self.max_seq_length}.")
 
     @timecheck
     def split_documents(self, documents:list[Document])->list[Document]:
@@ -234,13 +234,70 @@ class HuggingFaceEmbeddingTextSplitter:
         
         """
         text_splitter = SentenceTransformersTokenTextSplitter(chunk_overlap=10, tokens_per_chunk=self.max_seq_length, model_name=self.path)
-        return text_splitter.split_documents(documents)
+        splitted_docs = text_splitter.split_documents(documents)
+        print(f"Document splitted with SentenceTransformerTokenizer -> length <{len(splitted_docs)}>")
+    
+        return splitted_docs
         
 ## test
 if __name__ == "__main__":
+    #config
+    embedding_model_path = "model/ko_sroberta_multitask_seed_777_lr_1e-5"
+    #Chroma object 생성.
+    chroma = Chroma()
+    ### from_document method 이용해서 저장(document, embedding, persist_directory, collection_name)
+
+    #run
     db = TokenDBLoader(path_db="data", path_metadata="metadata.json", path_url_table="url_table.csv").load()
-    splitter = HuggingFaceEmbeddingTextSplitter(path="model/ko_sroberta_multitask_seed_777_lr_1e-5")
-    db = splitter.split_documents(db)
-    print(f"load database complete. {len(db)} exsists with data.")
+    splitter = HuggingFaceEmbeddingTextSplitter(path=embedding_model_path)
+    db_split_by_token = splitter.split_documents(db)
+
+    #chroma setup
+    STE = EmbeddingLoader.SentenceTransformerEmbedding
+    sentenceloader = STE(model_name=embedding_model_path, multi_process=True, encode_kwargs={'normalize_embeddings':True})
+    embedding_model = sentenceloader.load()
+
+    # set model name(cause collection name length limit)
+    model_name = embedding_model_path.split("/")[-1]
+
+    # save document with chunk - embedding calculate and save it to persist directory
+    collection = chroma.from_documents(documents=db_split_by_token, embedding=embedding_model, collection_name=model_name, collection_metadata={"hnsw:space":"cosine"}, persist_directory="chroma")
+    collection.persist()
+    print(collection._collection)
+    
+    print("run end")
+
+
+# import chromadb
+# from chromadb.config import Settings
+
+# # Assuming client is already set up
+# client = chromadb.Client(Settings(chroma_db_impl="your_db_implementation", persist_directory="your_persist_directory"))
+
+# def handle_empty_collection():
+#     # Custom logic for handling an empty collection
+#     print("Handling empty collection...")
+
+# def handle_nonexistent_collection():
+#     # Custom logic for handling a non-existent collection
+#     print("Handling non-existent collection...")
+
+# def check_and_handle_collection(collection_name):
+#     try:
+#         collection = client.get_collection(name=collection_name)
+#         collection_size = collection.count()
+        
+#         if collection_size > 0:
+#             print(f"Collection '{collection_name}' exists with {collection_size} documents.")
+#         else:
+#             print(f"Collection '{collection_name}' exists but is empty.")
+#             handle_empty_collection()
+
+#     except Exception as e:
+#         print(f"Collection '{collection_name}' does not exist.")
+#         handle_nonexistent_collection()
+
+# # Replace 'YourCollectionName' with the name of your collection
+# check_and_handle_collection("YourCollectionName")
 
 ##################################################################################################################################################

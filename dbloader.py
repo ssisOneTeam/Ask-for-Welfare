@@ -12,11 +12,14 @@ import numpy as np
 import json
 
 from langchain.document_loaders import DirectoryLoader, UnstructuredMarkdownLoader
-from langchain.text_splitter import TextSplitter
-from langchain.schema.document import Document
+from langchain.text_splitter import TextSplitter, SentenceTransformersTokenTextSplitter
+from langchain.schema.document import Document 
 
 import time
 import functools
+
+#embeddingloading
+from embedding import EmbeddingLoader
 
 ## wrapper for check time
 def timecheck(func):
@@ -35,7 +38,7 @@ def timecheck(func):
 class BaseDBLoader:
     """markdownDB folder에서 불러온 다음에 폴더별로 내부에 있는 내용 Load해서 Split하고 저장함"""
 
-    def __init__(self, path_db:str, path_metadata:str, path_url_table:str, text_splitter:TextSplitter, loader_cls=UnstructuredMarkdownLoader):
+    def __init__(self, path_db:str, path_metadata:str, path_url_table:str, text_splitter:TextSplitter=None, loader_cls=UnstructuredMarkdownLoader):
         # textsplitter config
         self.text_splitter = text_splitter
         # loaderclass config
@@ -44,7 +47,7 @@ class BaseDBLoader:
         self.path_db = path_db
         # metadata path
         self.path_metadata = path_metadata
-        # url table path
+        # url table paths
         self.path_url_table = path_url_table
         # storage
         self.storage = []
@@ -117,7 +120,7 @@ class BaseDBLoader:
         dir_source = parsed_source[-2]
         return self._replace_metadata(dir_source)
     
-    def _process_document_metadata(self, documents:list)->list:
+    def _process_document_metadata(self, documents:list[Document])->list:
         """
         wrapper method.
         get metadata edit internal methods and integrate all.
@@ -172,11 +175,10 @@ class TokenDBLoader(BaseDBLoader):
     """
     
     @timecheck
-    def load(self, is_split=False, is_regex=False, show_progress=True, use_multithreading=True) -> list[Document]:
+    def load(self, is_regex=False, show_progress=True, use_multithreading=True) -> list[Document]:
         """ Get Directory Folder and documents -> parse, edit metadata -> langchain Document list. 
         
             args :
-                is_split: whether split or not(text_splitter)
                 is_regex: apply regex to edit document form. 
                 show_progress: show progress -> from LangChain.
                 use_multithreading: use multithread(cpu) -> from LangChain. """
@@ -194,9 +196,7 @@ class TokenDBLoader(BaseDBLoader):
             doc_list = self._process_document_metadata(doc_list)
 
             if is_regex:
-                doc_list = self._preprocess_document_list(doc_list)            
-            if is_split:
-                doc_list = self.text_splitter.split_documents(doc_list)
+                doc_list = self._preprocess_document_list(doc_list)
 
             self.storage.extend(doc_list)
 
@@ -206,11 +206,41 @@ class TokenDBLoader(BaseDBLoader):
         regex = '([^가-힣0-9a-zA-Z])'
         s = re.sub(pattern=regex, repl="", string=s)
         return s
+    
+##################################################################################################################################################
 
+#240106 edit
+class HuggingFaceEmbeddingTextSplitter:
+    """ Get HuggingFace Embedding(by local) -> check & get max token sequence length -> split document by max_token_sequence_length """
+    def __init__(self, path:str):
+        self.path = path
+        # get max_sequence_length from model path
+        sentence_bert_config = "sentence_bert_config.json"
+        config_path = os.path.join(self.path, sentence_bert_config)
+
+        with open(config_path) as file :
+            bert_config = json.load(file)
+            
+        self.max_seq_length = bert_config["max_seq_length"]
+
+        print(f"Huggingface model {self.path} got max_seq_length of: {self.max_seq_length}")
+
+    @timecheck
+    def split_documents(self, documents:list[Document])->list[Document]:
+        """ Get langchain document object list and split by TokenTextSplitter 
+            
+            Args:
+            documents : Langchain document object list
+        
+        """
+        text_splitter = SentenceTransformersTokenTextSplitter(chunk_overlap=10, tokens_per_chunk=self.max_seq_length, model_name=self.path)
+        return text_splitter.split_documents(documents)
+        
 ## test
 if __name__ == "__main__":
-    db = TokenDBLoader(path_db="data", path_metadata="metadata.json", path_url_table="url_table.csv", text_splitter=None).load()
+    db = TokenDBLoader(path_db="data", path_metadata="metadata.json", path_url_table="url_table.csv").load()
+    splitter = HuggingFaceEmbeddingTextSplitter(path="model/ko_sroberta_multitask_seed_777_lr_1e-5")
+    db = splitter.split_documents(db)
     print(f"load database complete. {len(db)} exsists with data.")
 
-    ### logger 만들고
-    ### textsplitter 붙이기
+##################################################################################################################################################

@@ -2,6 +2,17 @@
 data/**
 !data/readme.md
 
+## data
+app/chroma
+
 ## MAC
 .DS_Store
 
+## model
+model/**
+
+## apikey
+apikey.py
+
+## cache folder
+__pycache__/

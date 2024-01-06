@@ -12,8 +12,8 @@ import re
 
 ### SET PAGE TITLE
 PAGE_TITLE = "09장 법률·금융복지 지원"
-ROOT_FOLDER = "./data/DB_work/"
-FOLDER_PATH = "./data/DB_work/09_법률·금융_복지_지원"
+ROOT_FOLDER = "./data/"
+FOLDER_PATH = "./data/09_법률·금융_복지_지원"
 
 st.set_page_config(page_title=PAGE_TITLE, page_icon="📈", layout="wide", menu_items={
         'About': "찾아 보장 서비스"}) # 페이지 세팅 이게 먼저 나와줘야하는듯..

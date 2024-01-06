@@ -211,7 +211,7 @@ class TokenDBLoader(BaseDBLoader):
 ##################################################################################################################################################
 
 #240106 edit
-class HuggingFaceEmbeddingTextSplitter:
+class HuggingFaceModelTextSplitter:
     """ Get HuggingFace Embedding(by local) -> check & get max token sequence length -> split document by max_token_sequence_length """
     def __init__(self, path:str):
         self.path = path
@@ -221,8 +221,8 @@ class HuggingFaceEmbeddingTextSplitter:
 
         with open(config_path) as file :
             bert_config = json.load(file)
-            
-        self.max_seq_length = bert_config["max_seq_length"]
+            self.max_seq_length = bert_config["max_seq_length"]
+
         print(f"max sequence from current model({self.path}) is {self.max_seq_length}.")
 
     @timecheck
@@ -234,12 +234,14 @@ class HuggingFaceEmbeddingTextSplitter:
         
         """
         text_splitter = SentenceTransformersTokenTextSplitter(chunk_overlap=10, tokens_per_chunk=self.max_seq_length, model_name=self.path)
+
+
         splitted_docs = text_splitter.split_documents(documents)
         print(f"Document splitted with SentenceTransformerTokenizer -> length <{len(splitted_docs)}>")
     
         return splitted_docs
         
-## test
+## Making DB example
 if __name__ == "__main__":
     #config
     embedding_model_path = "model/ko_sroberta_multitask_seed_777_lr_1e-5"
@@ -249,8 +251,17 @@ if __name__ == "__main__":
 
     #run
     db = TokenDBLoader(path_db="data", path_metadata="metadata.json", path_url_table="url_table.csv").load()
-    splitter = HuggingFaceEmbeddingTextSplitter(path=embedding_model_path)
+    splitter = HuggingFaceModelTextSplitter(path=embedding_model_path)
     db_split_by_token = splitter.split_documents(db)
+
+    # file_path = "documents.txt"
+
+    # # 파일에 쓰기
+    # with open(file_path, "w", encoding="utf-8") as file:
+    #     for document in db_split_by_token:
+    #         file.write(document.page_content + "\n")
+
+    # print(f"{len(db_split_by_token)}개의 문서가 '{file_path}'에 저장되었습니다.")
 
     #chroma setup
     STE = EmbeddingLoader.SentenceTransformerEmbedding
@@ -266,8 +277,10 @@ if __name__ == "__main__":
     print("collection generate with ChromaDB complete.")
     print(collection._collection)
 
-## TODO
-## db생성 빼놓기
-## 밑에 있는 chroma 관련해서 client 참조하는 방식 사용하기 (메모리 절약, 시간 절약)
+    ## chroma 저장까지는 잘 됨, loading 부분(main.py에서 문제가 있는거임)
 
-## 위에거 하면 생성에서 stream 해가지고 streamlit에서 flush하게 출력될 수 있도록 하기(시간 절약)
+# ## TODO
+# ## db생성 빼놓기
+# ## 밑에 있는 chroma 관련해서 client 참조하는 방식 사용하기 (메모리 절약, 시간 절약)
+
+# ## 위에거 하면 생성에서 stream 해가지고 streamlit에서 flush하게 출력될 수 있도록 하기(시간 절약)

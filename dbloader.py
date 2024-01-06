@@ -278,6 +278,7 @@ if __name__ == "__main__":
     print(collection._collection)
 
     ## chroma 저장까지는 잘 됨, loading 부분(main.py에서 문제가 있는거임)
+    ## 이거 A팀꺼 방식으로 main.py 수정해서 돌려보기(check해야 함)
 
 # ## TODO
 # ## db생성 빼놓기

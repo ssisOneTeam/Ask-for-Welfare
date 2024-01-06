@@ -13,3 +13,6 @@ contributor
 시행착오
 
 일단 데이터 문제 해결 전까지는 ignore
+
+
+![Alt text](./img/logo_white.png)

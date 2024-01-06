@@ -263,41 +263,11 @@ if __name__ == "__main__":
     # save document with chunk - embedding calculate and save it to persist directory
     collection = chroma.from_documents(documents=db_split_by_token, embedding=embedding_model, collection_name=model_name, collection_metadata={"hnsw:space":"cosine"}, persist_directory="chroma")
     collection.persist()
+    print("collection generate with ChromaDB complete.")
     print(collection._collection)
-    
-    print("run end")
 
+## TODO
+## db생성 빼놓기
+## 밑에 있는 chroma 관련해서 client 참조하는 방식 사용하기 (메모리 절약, 시간 절약)
 
-# import chromadb
-# from chromadb.config import Settings
-
-# # Assuming client is already set up
-# client = chromadb.Client(Settings(chroma_db_impl="your_db_implementation", persist_directory="your_persist_directory"))
-
-# def handle_empty_collection():
-#     # Custom logic for handling an empty collection
-#     print("Handling empty collection...")
-
-# def handle_nonexistent_collection():
-#     # Custom logic for handling a non-existent collection
-#     print("Handling non-existent collection...")
-
-# def check_and_handle_collection(collection_name):
-#     try:
-#         collection = client.get_collection(name=collection_name)
-#         collection_size = collection.count()
-        
-#         if collection_size > 0:
-#             print(f"Collection '{collection_name}' exists with {collection_size} documents.")
-#         else:
-#             print(f"Collection '{collection_name}' exists but is empty.")
-#             handle_empty_collection()
-
-#     except Exception as e:
-#         print(f"Collection '{collection_name}' does not exist.")
-#         handle_nonexistent_collection()
-
-# # Replace 'YourCollectionName' with the name of your collection
-# check_and_handle_collection("YourCollectionName")
-
-##################################################################################################################################################
+## 위에거 하면 생성에서 stream 해가지고 streamlit에서 flush하게 출력될 수 있도록 하기(시간 절약)

@@ -1,10 +1,5 @@
-## except readme.md(for check structure)
-data/**
-!data/readme.md
-
 ## data
 app/chroma
-chroma
 
 ## MAC
 .DS_Store

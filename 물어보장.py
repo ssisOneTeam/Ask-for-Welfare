@@ -31,7 +31,7 @@ try:
 except:
     print('APY_KEY 없음..')
 
-score_threshold = 0.02
+score_threshold = 0.2
 search_k = 5
 llm_model = "gpt-4-1106-preview" # gpt-3.5-turbo / gpt-4-1106-preview
 user_img = "https://freesvg.org/img/abstract-user-flat-4.png"

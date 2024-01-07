@@ -1,3 +1,8 @@
+###### TODO
+# Document URL, TITLE 답변에서 따와가지고 붙이기
+# 답변 형식 Markdown처럼 정제된 형식으로 나오게 하기
+# TTS STT 할 거면 붙이기(누가 개좋아해서 해야할듯 ㅡㅡ 굳이?)
+
 import os
 from apikey import OPENAI_API_KEY
 

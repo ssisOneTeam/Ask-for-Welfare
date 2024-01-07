@@ -65,7 +65,7 @@ setup_and_retrieval = RunnableParallel(
 
 ## Streamlit
 if "messages" not in st.session_state:
-    st.session_state["messages"] = [ChatMessage(role="assistant", content="How can I help you?")]
+    st.session_state["messages"] = [ChatMessage(role="assistant", content="안녕하세요! 저는 복지 상담 서비스 물어보장입니다. 무엇을 도와드릴까요? 복지와 관련한 궁금한 정보 아무거나 물어보장 ~")]
 
 for msg in st.session_state.messages:
     st.chat_message(msg.role).write(msg.content)
